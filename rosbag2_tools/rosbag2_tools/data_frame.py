@@ -46,7 +46,7 @@ def read_data_frames(bag_view: BagView, field_dict: Dict[str, List[str]], auto_s
     data = {}
     field_types = {}
     topics = dict(bag_view.topics())
-    for (topic, fields) in field_dict.items():
+    for (topic, fields) in filter(filt, field_dict.items()):
         data[topic] = {}
         field_types[topic] = {}
         msg_type = topics[topic]
@@ -59,8 +59,9 @@ def read_data_frames(bag_view: BagView, field_dict: Dict[str, List[str]], auto_s
         for field in fields:
             field_types[topic][field] = _field_type(msg_type, field)
             data[topic][field] = []
+    filt = filter(lambda t, f: t in field_dict)  # Only iterate over topics passed in the 2nd input
     for (topic, msg, _) in bag_view:
-        for field, field_type in field_types[topic].items():
+        for field, field_type in filter(filt, field_types[topic].items()):
             value = _rgetattr(msg, field)
             if field_type == 'builtin_interfaces/Time':
                 ns = Time.from_msg(value).nanoseconds
